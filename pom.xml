@@ -14,4 +14,29 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>neoforged</id>
+            <url>https://maven.neoforged.net/releases</url>
+        </repository>
+        <repository>
+            <id>minecraft-libraries</id>
+            <url>https://libraries.minecraft.net/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.neoforged.fancymodloader</groupId>
+            <artifactId>loader</artifactId>
+            <version>11.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>net.neoforged</groupId>
+            <artifactId>neoforgespi</artifactId>
+            <version>9.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
 </project>
