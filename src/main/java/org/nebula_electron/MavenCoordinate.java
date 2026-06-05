@@ -3,19 +3,19 @@ package org.nebula_electron;
 import java.nio.file.*;
 
 /**
- * Represents a Maven artifact coordinate in {@code group:artifact:version} form.
+ * A Maven artifact coordinate in {@code group:artifact:version} form.
  *
  * @param group    the Maven group ID (e.g. {@code net.neoforged})
  * @param artifact the Maven artifact ID (e.g. {@code neoforge})
- * @param version  the artifact version string (e.g. {@code 21.1.0+1})
+ * @param version  the artifact version (e.g. {@code 21.1.0+1})
  */
 public record MavenCoordinate(String group, String artifact, String version) {
 
     /**
-     * Parses a colon-separated Maven coordinate string.
+     * Parses a {@code group:artifact:version} string.
      *
-     * @param coord a string in {@code group:artifact:version} format
-     * @return the parsed coordinate, or {@code null} if fewer than three colon-separated parts are present
+     * @param coord the coordinate string to parse
+     * @return the parsed coordinate, or null if fewer than three colon-separated parts are present
      */
     public static MavenCoordinate parse(String coord) {
         String[] parts = coord.split(":");
@@ -24,16 +24,15 @@ public record MavenCoordinate(String group, String artifact, String version) {
     }
 
     /**
-     * Resolves the path to this artifact's jar inside a local Maven repository.
+     * Resolves the path to this artifact's jar in a local Maven repository.
      *
-     * <p>If the version contains {@code '+'}, a patched variant
-     * ({@code <artifact>-<version>.patched.jar}) is preferred when it exists. Patched jars have
-     * the {@code '+'} stripped from their version in {@code neoforge.mods.toml} so that Maven
-     * version ranges resolve correctly. Patching is skipped for jars that do not need it because
-     * patching a signed jar invalidates its signature.
+     * <p>If the version contains {@code '+'}, a {@code .patched.jar} variant is preferred when it
+     * exists. Patched jars have the {@code '+'} stripped in {@code neoforge.mods.toml} so Maven
+     * version ranges work correctly. Jars that don't need patching are left alone since patching
+     * a signed jar invalidates its signature.
      *
-     * @param repoRoot the root directory of the local Maven repository
-     * @return the resolved, normalized path to the jar file
+     * @param repoRoot root directory of the local Maven repository
+     * @return the normalized path to the jar file
      */
     public Path resolveIn(Path repoRoot) {
         Path base = repoRoot
@@ -51,11 +50,7 @@ public record MavenCoordinate(String group, String artifact, String version) {
         return base.resolve(artifact + "-" + version + ".jar").normalize();
     }
 
-    /**
-     * Returns this coordinate as a {@code group:artifact:version} string.
-     *
-     * @return the canonical string representation of this coordinate
-     */
+    /** Returns the coordinate as a {@code group:artifact:version} string. */
     @Override
     public String toString() {
         return group + ":" + artifact + ":" + version;

@@ -1,7 +1,5 @@
 package org.nebula_electron;
 
-import net.neoforged.fml.loading.FMLPaths;
-
 import java.io.*;
 import java.nio.file.*;
 import java.security.*;
@@ -9,30 +7,37 @@ import java.util.HexFormat;
 import java.util.zip.*;
 
 /**
- * Content-addressed cache for JarInJar (JIJ) inner jars.
+ * Content-addressed cache for JarInJar inner jars.
  *
- * <p>Inner jars are extracted from their containing zip to a directory managed by FML
- * ({@code FMLPaths.JIJ_CACHEDIR}), keyed by their SHA-256 checksum. Re-extracting the same bytes
- * is a no-op: if the destination already exists the temporary file is simply deleted.
+ * <p>Inner jars are stored under {@code cacheDir} keyed by their SHA-256 hash.
+ * Extracting the same bytes twice is a no-op: if the destination already exists the
+ * temp file is deleted and the existing path is returned.
  */
 public class JijCache {
 
+    private final Path cacheDir;
+
     /**
-     * Extracts a zip entry to the JIJ cache directory, keyed by its SHA-256 hash.
+     * @param cacheDir directory where cached jars are stored
+     */
+    public JijCache(Path cacheDir) {
+        this.cacheDir = cacheDir;
+    }
+
+    /**
+     * Extracts a zip entry to the cache, keyed by its SHA-256 hash.
      *
-     * <p>The entry is first written to a temp file in the cache directory. After hashing, it is
-     * moved atomically to {@code <cacheDir>/<sha256>/<filename>}. If the destination already
-     * exists (a previously cached extraction), the temp file is discarded and the existing path is
-     * returned.
+     * <p>The entry is written to a temp file, hashed, then moved atomically to
+     * {@code <cacheDir>/<sha256>/<filename>}. If that path already exists the temp
+     * file is discarded and the cached path is returned.
      *
-     * @param zip       the zip file containing the entry to extract
-     * @param entryPath the path of the entry within {@code zip}
-     * @param filename  the file name to use for the cached artifact
-     * @return the path of the cached jar file
+     * @param zip       zip file containing the entry
+     * @param entryPath path of the entry within {@code zip}
+     * @param filename  filename to use for the cached artifact
+     * @return path to the cached jar
      * @throws IOException if reading, hashing, or moving the file fails
      */
     public Path extract(ZipFile zip, String entryPath, String filename) throws IOException {
-        Path cacheDir = FMLPaths.JIJ_CACHEDIR.get();
         Path tmp = Files.createTempFile(cacheDir, "_jij", ".tmp");
         String checksum;
         try {
@@ -61,12 +66,6 @@ public class JijCache {
         return dest;
     }
 
-    /**
-     * Creates a SHA-256 {@link MessageDigest} instance.
-     *
-     * @return a fresh {@code SHA-256} digest
-     * @throws RuntimeException if the JVM does not support SHA-256 (never happens on compliant JVMs)
-     */
     private static MessageDigest newSha256() {
         try {
             return MessageDigest.getInstance("SHA-256");

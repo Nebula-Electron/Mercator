@@ -6,11 +6,10 @@
 
     <groupId>org.nebula_electron</groupId>
     <artifactId>Mercator</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -26,17 +25,163 @@
     </repositories>
 
     <dependencies>
+        <!-- Minecraft 1.20.1 runtime deps (base, JDK 17) -->
         <dependency>
             <groupId>net.neoforged.fancymodloader</groupId>
             <artifactId>loader</artifactId>
-            <version>11.0.13</version>
+            <version>47.2.3</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>net.neoforged</groupId>
-            <artifactId>neoforgespi</artifactId>
-            <version>9.0.2</version>
+            <groupId>net.minecraftforge</groupId>
+            <artifactId>forgespi</artifactId>
+            <version>7.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cpw.mods</groupId>
+            <artifactId>securejarhandler</artifactId>
+            <version>2.1.10</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-mc1.20x-deps</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>copy</goal></goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>net.neoforged.fancymodloader</groupId>
+                                    <artifactId>loader</artifactId>
+                                    <version>4.0.42</version>
+                                    <outputDirectory>${project.build.directory}/mc1.20x-libs</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>net.neoforged</groupId>
+                                    <artifactId>neoforgespi</artifactId>
+                                    <version>9.0.2</version>
+                                    <outputDirectory>${project.build.directory}/mc1.20x-libs</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>cpw.mods</groupId>
+                                    <artifactId>securejarhandler</artifactId>
+                                    <version>3.0.7</version>
+                                    <outputDirectory>${project.build.directory}/mc1.20x-libs</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-mc1.21x-deps</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>copy</goal></goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>net.neoforged.fancymodloader</groupId>
+                                    <artifactId>loader</artifactId>
+                                    <version>11.0.13</version>
+                                    <outputDirectory>${project.build.directory}/mc1.21x-libs</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>net.neoforged</groupId>
+                                    <artifactId>neoforgespi</artifactId>
+                                    <version>9.0.2</version>
+                                    <outputDirectory>${project.build.directory}/mc1.21x-libs</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-20x-impl</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>javac</executable>
+                            <arguments>
+                                <argument>--release</argument>
+                                <argument>21</argument>
+                                <argument>-d</argument>
+                                <argument>${project.build.outputDirectory}/META-INF/versions/21</argument>
+                                <argument>-cp</argument>
+                                <argument>${project.build.directory}/mc1.20x-libs/loader-4.0.42.jar${path.separator}${project.build.directory}/mc1.20x-libs/neoforgespi-9.0.2.jar${path.separator}${project.build.directory}/mc1.20x-libs/securejarhandler-3.0.7.jar${path.separator}${project.build.outputDirectory}</argument>
+                                <argument>${project.basedir}/src/main/java-mc1.20x/org/nebula_electron/MavenModLocatorRegistrar20x.java</argument>
+                                <argument>${project.basedir}/src/main/java-mc1.20x/org/nebula_electron/OverlappingJarResolver20x.java</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-21x-impl</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>javac</executable>
+                            <arguments>
+                                <argument>--release</argument>
+                                <argument>21</argument>
+                                <argument>-d</argument>
+                                <argument>${project.build.outputDirectory}/META-INF/versions/21</argument>
+                                <argument>-cp</argument>
+                                <argument>${project.build.directory}/mc1.21x-libs/loader-11.0.13.jar${path.separator}${project.build.directory}/mc1.21x-libs/neoforgespi-9.0.2.jar${path.separator}${project.build.outputDirectory}</argument>
+                                <argument>${project.basedir}/src/main/java-mc1.21x/org/nebula_electron/MavenModLocatorRegistrar21x.java</argument>
+                                <argument>${project.basedir}/src/main/java-mc1.21x/org/nebula_electron/OverlappingJarResolver21x.java</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-dispatcher</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>javac</executable>
+                            <arguments>
+                                <argument>--release</argument>
+                                <argument>21</argument>
+                                <argument>-d</argument>
+                                <argument>${project.build.outputDirectory}/META-INF/versions/21</argument>
+                                <argument>-cp</argument>
+                                <argument>${project.build.directory}/mc1.21x-libs/neoforgespi-9.0.2.jar${path.separator}${project.build.directory}/mc1.21x-libs/loader-11.0.13.jar${path.separator}${project.build.outputDirectory}${path.separator}${project.build.outputDirectory}/META-INF/versions/21</argument>
+                                <argument>${project.basedir}/src/main/java-mc-dispatcher/org/nebula_electron/MavenModLocatorRegistrar.java</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Multi-Release>true</Multi-Release>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
