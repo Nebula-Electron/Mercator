@@ -21,7 +21,7 @@ Place the resulting JAR in your NeoForge instance's `libraries/` or equivalent e
 ### 2. JVM arguments
 
 | Argument | Description | Default |
-|---|---|---|---|
+|---|---|---|
 | `-Dmercator.repo.root=<path>` | Path to the root of your local Maven repository | `../../common/modstore` |
 | `-Dmercator.mod.list=<path>` | Path to the mod list file | *(required)* |
 | `-Dmercator.minecraft.version=<version>` | Target Minecraft version for variant selection | `1.20.1` |
