@@ -9,9 +9,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if pom.xml version changed
+        id: version_check
+        run: |
+          OLD=$(git show HEAD~1:pom.xml 2>/dev/null | grep -m1 '<version>' | sed 's/.*<version>\(.*\)<\/version>.*/\1/' || echo "")
+          NEW=$(grep -m1 '<version>' pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+          echo "old=$OLD" >> $GITHUB_OUTPUT
+          echo "new=$NEW" >> $GITHUB_OUTPUT
+          if [ "$OLD" != "$NEW" ] && [ "${{ github.event_name }}" = "push" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up Java 25
         uses: actions/setup-java@v4
@@ -28,3 +45,14 @@ jobs:
         with:
           name: Mercator
           path: target/Mercator-*.jar
+
+      - name: Create GitHub Release
+        if: steps.version_check.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version_check.outputs.new }}
+          name: Mercator v${{ steps.version_check.outputs.new }}
+          files: target/Mercator-*.jar
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
